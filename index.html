@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillBridge</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Load order matters: data → utils → feature files -->
+  <script src="data.js"     defer></script>
+  <script src="utils.js"    defer></script>
+  <script src="discover.js" defer></script>
+  <script src="profile.js"  defer></script>
+  <script src="requests.js" defer></script>
+  <script src="schedule.js" defer></script>
+</head>
+<body class="bg-white text-[#111111] min-h-screen" style="font-family:'Inter',sans-serif;">
+
+<nav class="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-[#E5E5E5] h-16 flex items-center gap-2 px-6">
+
+  <div class="font-semibold text-lg mr-3" style="font-family:'Space Grotesk',sans-serif;">
+    Skill<span class="text-emerald-500">Bridge</span>
+  </div>
+
+  <div class="flex gap-1 flex-1">
+    <button class="ntab on" data-page="discover"  onclick="nav('discover')">Discover</button>
+    <button class="ntab"    data-page="profile"   onclick="nav('profile')">My Profile</button>
+    <button class="ntab"    data-page="requests"  onclick="nav('requests')">
+      Requests
+      <span id="req-dot" class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full hidden"></span>
+    </button>
+    <button class="ntab"    data-page="schedule"  onclick="nav('schedule')">Schedule</button>
+  </div>
+
+  <div class="flex items-center gap-3 ml-auto">
+
+    <div class="flex items-center gap-2 bg-[#FAFAFA] border border-[#E5E5E5] rounded-full px-3.5 py-2">
+      <svg class="w-3.5 h-3.5 text-[#999]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input id="search-input" placeholder="Search…" oninput="renderDiscover()"
+             class="bg-transparent border-none outline-none text-sm text-[#111] placeholder-[#999] w-24">
+    </div>
+
+    <div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-3.5 py-2 text-emerald-700 text-xs font-semibold">
+      <span>◈</span>
+      <span class="coin-count">12</span>
+    </div>
+
+    <div id="nav-av" onclick="nav('profile')"
+         class="w-9 h-9 rounded-full flex items-center justify-center
+                text-xs font-bold cursor-pointer hover:scale-105 transition-transform">
+      Y
+    </div>
+  </div>
+</nav>
+
+<!-- Discover page -->
+<div id="page-discover" class="page on max-w-5xl mx-auto px-6 py-10">
+  <div class="mb-7">
+    <h1 class="text-3xl font-semibold tracking-tight mb-2" style="font-family:'Space Grotesk',sans-serif;">
+      Find your <em class="text-emerald-500 not-italic">match</em>
+    </h1>
+    <p class="text-sm text-[#666]">Trade what you know for what you need.</p>
+  </div>
+  <div id="skill-filters" class="flex flex-wrap gap-2 mb-6"></div>
+  <div id="users-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</div>
+
+<!-- Profile page -->
+<div id="page-profile" class="page max-w-5xl mx-auto px-6 py-10">
+  <div class="mb-7">
+    <h1 class="text-3xl font-semibold tracking-tight mb-2" style="font-family:'Space Grotesk',sans-serif;">
+      My <em class="text-emerald-500 not-italic">Profile</em>
+    </h1>
+    <p class="text-sm text-[#666]">Your knowledge is your currency.</p>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5">
+    <div>
+      <div id="profile-card" class="card sticky top-24"></div>
+    </div>
+    <div id="skill-sections" class="flex flex-col gap-4"></div>
+  </div>
+</div>
+
+<!-- Requests page -->
+<div id="page-requests" class="page max-w-5xl mx-auto px-6 py-10">
+  <div class="mb-7">
+    <h1 class="text-3xl font-semibold tracking-tight mb-2" style="font-family:'Space Grotesk',sans-serif;">
+      Skill <em class="text-emerald-500 not-italic">Requests</em>
+    </h1>
+    <p class="text-sm text-[#666]">People who want to exchange skills with you.</p>
+  </div>
+  <div class="flex gap-2 mb-5">
+    <button class="rtab on" onclick="setReqTab('incoming', this)">
+      Incoming <span id="in-count" class="text-xs opacity-70"></span>
+    </button>
+    <button class="rtab" onclick="setReqTab('sent', this)">Sent</button>
+    <button class="rtab" onclick="setReqTab('accepted', this)">Accepted</button>
+  </div>
+  <div id="req-list" class="flex flex-col gap-4"></div>
+</div>
+
+<!-- Schedule page -->
+<div id="page-schedule" class="page max-w-5xl mx-auto px-6 py-10">
+  <div class="mb-7">
+    <h1 class="text-3xl font-semibold tracking-tight mb-2" style="font-family:'Space Grotesk',sans-serif;">
+      My <em class="text-emerald-500 not-italic">Schedule</em>
+    </h1>
+    <p class="text-sm text-[#666]">Upcoming sessions and availability.</p>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+    <div id="calendar-card" class="card"></div>
+    <div id="sessions-card" class="card"></div>
+  </div>
+</div>
+
+<!-- Request modal -->
+<div class="mo" id="mo-req">
+  <div class="mo-box">
+    <div class="mo-title">
+      Request a skill exchange
+      <button class="mo-close" onclick="closeModal('mo-req')">✕</button>
+    </div>
+
+    <div id="mo-req-user-info" class="flex items-center gap-3 p-3.5 bg-[#FAFAFA] border border-[#E5E5E5] rounded-2xl mb-4"></div>
+
+    <div class="mb-4">
+      <label class="mo-label">Exchange type</label>
+      <div class="flex gap-1.5 bg-[#FAFAFA] p-1 rounded-2xl border border-[#E5E5E5]">
+        <button class="etog on" data-type="swap" onclick="setExchangeType('swap', this)">⇄ Skill Swap</button>
+        <button class="etog"    data-type="coin" onclick="setExchangeType('coin', this)">◈ Use Coins</button>
+      </div>
+    </div>
+
+    <div id="swap-fields">
+      <div class="mo-field">
+        <label class="mo-label">I'll teach you</label>
+        <select id="req-offer-sel" class="mo-select"></select>
+      </div>
+      <div class="mo-field">
+        <label class="mo-label">In exchange for</label>
+        <select id="req-want-sel" class="mo-select"></select>
+      </div>
+    </div>
+
+    <div id="coin-fields" style="display:none">
+      <div class="mo-field">
+        <label class="mo-label">Skill you want to learn</label>
+        <select id="req-coin-want-sel" class="mo-select"></select>
+      </div>
+      <div class="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-2xl px-3.5 py-2.5 mb-3 text-xs text-amber-700">
+        ◈ Costs 3 Skill Coins · You have <strong id="modal-coin-count">12</strong>
+      </div>
+    </div>
+
+    <div class="mo-field">
+      <label class="mo-label">Message</label>
+      <textarea id="req-msg" class="mo-textarea"
+                placeholder="Introduce yourself — what do you want to learn and what can you offer?"></textarea>
+    </div>
+
+    <div class="mo-actions">
+      <button class="mo-cancel"  onclick="closeModal('mo-req')">Cancel</button>
+      <button class="mo-confirm" onclick="sendRequest()">Send Request →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Session booking modal -->
+<div class="mo" id="mo-session">
+  <div class="mo-box">
+    <div class="mo-title">
+      Schedule a session
+      <button class="mo-close" onclick="closeModal('mo-session')">✕</button>
+    </div>
+
+    <div class="mo-field">
+      <label class="mo-label">Session with</label>
+      <select id="sess-with" class="mo-select"></select>
+    </div>
+    <div class="mo-field">
+      <label class="mo-label">Skill topic</label>
+      <input id="sess-skill" class="mo-input" placeholder="e.g. React Hooks, Spanish basics…">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="mo-field">
+        <label class="mo-label">Date</label>
+        <input id="sess-date" type="date" class="mo-input">
+      </div>
+      <div class="mo-field">
+        <label class="mo-label">Time</label>
+        <input id="sess-time" type="time" class="mo-input">
+      </div>
+    </div>
+    <div class="mo-field">
+      <label class="mo-label">Duration</label>
+      <select id="sess-dur" class="mo-select">
+        <option value="30">30 minutes</option>
+        <option value="45">45 minutes</option>
+        <option value="60" selected>1 hour</option>
+        <option value="90">1.5 hours</option>
+      </select>
+    </div>
+
+    <div class="mo-actions">
+      <button class="mo-cancel"  onclick="closeModal('mo-session')">Cancel</button>
+      <button class="mo-confirm" onclick="bookSession()">Book Session →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Review modal -->
+<div class="mo" id="mo-review">
+  <div class="mo-box">
+    <div class="mo-title">
+      Rate this session
+      <button class="mo-close" onclick="closeModal('mo-review')">✕</button>
+    </div>
+
+    <div id="review-session-info" class="p-3.5 bg-[#FAFAFA] border border-[#E5E5E5] rounded-2xl mb-4 text-sm text-[#444]"></div>
+
+    <div class="mb-4">
+      <label class="mo-label">Your rating</label>
+      <div class="flex gap-2">
+        <span class="star text-3xl text-[#DDD] cursor-pointer" onclick="setStar(1)">★</span>
+        <span class="star text-3xl text-[#DDD] cursor-pointer" onclick="setStar(2)">★</span>
+        <span class="star text-3xl text-[#DDD] cursor-pointer" onclick="setStar(3)">★</span>
+        <span class="star text-3xl text-[#DDD] cursor-pointer" onclick="setStar(4)">★</span>
+        <span class="star text-3xl text-[#DDD] cursor-pointer" onclick="setStar(5)">★</span>
+      </div>
+    </div>
+
+    <div class="mo-actions">
+      <button class="mo-cancel"  onclick="closeModal('mo-review')">Skip</button>
+      <button class="mo-confirm" onclick="submitReview()">Submit Review →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+</body>
+</html>
